@@ -1,0 +1,1199 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Катаемся с Владиславой</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+<!-- SDK обеих платформ. Если открыто не там — скрипт просто ничего не сделает. -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://st.max.ru/js/max-web-app.js"></script>
+<style>
+:root{
+  --bg:#1d2126; --bg2:#262b31; --card:#2a3037; --line:#3b434c;
+  --gold:#d9b66f; --gold-hi:rgba(255,238,196,.38); --gold-lo:rgba(0,0,0,.65);
+  --text:#e9eff4; --muted:#9fadb9; --lime:#8fcdf0; --lime-ink:#0c2231;
+  --radius:20px; --safe-b:env(safe-area-inset-bottom,0px);
+  --serif:'Fraunces',Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:'Manrope',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overflow-x:hidden}
+.app{max-width:520px;margin:0 auto;padding:0 18px calc(110px + var(--safe-b))}
+h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.02em}
+.serif{font-family:var(--serif);font-weight:700}
+.muted{color:var(--muted)}
+.screen{display:none;animation:in .38s cubic-bezier(.2,.8,.2,1)}
+.screen.active{display:block}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.hero{position:relative;padding:34px 0 18px;overflow:hidden}
+.hero::before{content:"";position:absolute;right:-70px;top:-60px;width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(143,205,240,.28),transparent 68%);filter:blur(4px)}
+.pill{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--lime);border:1px solid rgba(143,205,240,.35);padding:7px 12px;border-radius:99px;background:rgba(143,205,240,.07)}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime)}
+.hero h1{font-size:38px;line-height:1.04;margin:18px 0 12px;position:relative}
+.hero h1 em{font-style:normal;color:var(--lime);font-family:var(--serif)}
+.hero p{font-size:15.5px;line-height:1.5;color:var(--muted);margin:0;max-width:36ch;position:relative}
+.aud{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;position:relative}
+.aud span{font-size:12.5px;font-weight:700;padding:8px 12px;border-radius:99px;background:var(--card);border:1px solid var(--line)}
+.marquee{margin:6px -18px 8px;overflow:hidden;border-block:1px solid var(--line);padding:11px 0;background:var(--bg2)}
+.marquee div{display:flex;gap:34px;white-space:nowrap;width:max-content;animation:run 22s linear infinite;
+  font-weight:800;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.marquee b{color:var(--lime);font-weight:800}
+@keyframes run{to{transform:translateX(-50%)}}
+
+.sec-title{display:flex;justify-content:space-between;align-items:baseline;margin:26px 0 12px}
+.sec-title h2{font-size:21px}
+.sec-title span{font-size:13px;color:var(--muted)}
+.cat{margin:18px 2px 0;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--lime)}
+.cat:first-child{margin-top:0}
+.cat-sub{margin:-4px 2px 0;font-size:13px;line-height:1.45;color:var(--muted)}
+
+.cards{display:grid;gap:12px}
+.card{position:relative;background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:18px 18px 16px;
+  cursor:pointer;transition:border-color .2s,transform .15s,background .2s;user-select:none}
+.card:active{transform:scale(.985)}
+.card .row{display:flex;gap:14px;align-items:flex-start}
+.ico{flex:none;width:46px;height:46px;border-radius:14px;background:var(--bg2);display:grid;place-items:center;font-size:22px;border:1px solid var(--line)}
+.card h3{font-size:17px;margin-bottom:4px}
+.card p{margin:0;font-size:13.5px;line-height:1.45;color:var(--muted)}
+.card .price{margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.card .price b{font-size:18px;color:var(--text);font-family:var(--serif);white-space:nowrap}
+.check{position:absolute;right:14px;top:14px;width:26px;height:26px;border-radius:50%;border:1.5px solid #566270;display:grid;place-items:center;transition:.2s}
+.check svg{width:14px;height:14px;opacity:0;transform:scale(.4);transition:.2s;stroke:var(--lime-ink);stroke-width:3.2;fill:none}
+.card.sel{border-color:var(--lime);background:linear-gradient(180deg,rgba(143,205,240,.09),var(--card) 70%)}
+.card.sel .check{background:var(--lime);border-color:var(--lime)}
+.card.sel .check svg{opacity:1;transform:none}
+.card.has-check h3{padding-right:34px}
+.card.gift{background:linear-gradient(160deg,#27333e,var(--card) 65%);border-color:rgba(143,205,240,.28)}
+.prev{display:inline-block;margin-top:10px;font-size:13px;font-weight:800;color:var(--lime);text-decoration:none;cursor:pointer}
+.people{display:none;align-items:center;gap:8px;margin-top:14px;font-size:13px;color:var(--muted);font-weight:600}
+.card.sel .people{display:flex}
+.people span{margin-right:2px}
+.people button{width:42px;height:38px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg2);color:var(--text);font:inherit;font-weight:800;font-size:15px;cursor:pointer}
+.people button.sel{background:var(--lime);color:var(--lime-ink);border-color:var(--lime)}
+
+.note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:14px}
+
+label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin:16px 0 7px;letter-spacing:.03em}
+input[type=text],input[type=tel],input[type=url],textarea,select{width:100%;background:var(--card);border:1.5px solid var(--line);color:var(--text);
+  border-radius:14px;padding:14px 15px;font:inherit;font-size:15.5px;outline:none;transition:border-color .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--lime)}
+textarea{min-height:96px;resize:vertical}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.seg button{background:var(--card);border:1.5px solid var(--line);color:var(--text);border-radius:14px;padding:12px 6px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.seg button.sel{border-color:var(--lime);color:var(--lime)}
+.consent{display:flex;gap:11px;align-items:flex-start;margin-top:20px;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.consent input{margin-top:2px;width:20px;height:20px;accent-color:#8fcdf0;flex:none}
+.consent a{color:var(--text)}
+#offline-box,#video-box,#gift-box,#fit-box{display:none}
+
+.summary{background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:6px 18px;margin-top:6px}
+.summary .li{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.summary .li:last-child{border:0}
+.summary .tot{font-weight:800;font-size:18px}
+.summary .tot b{font-family:var(--serif);color:var(--lime);font-size:22px}
+
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-weight:700;font-size:14px;padding:22px 0 4px;cursor:pointer;background:none;border:0;font-family:inherit}
+.big{font-size:30px;line-height:1.1;margin:8px 0 6px}
+
+.done{text-align:center;padding:60px 10px 20px}
+.done .ring{width:92px;height:92px;border-radius:50%;background:var(--lime);display:grid;place-items:center;margin:0 auto 24px;animation:pop .6s cubic-bezier(.2,1.4,.4,1)}
+.done .ring svg{width:44px;height:44px;stroke:var(--lime-ink);stroke-width:3.4;fill:none}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+.done h2{font-size:28px;margin-bottom:10px}
+.done p{color:var(--muted);line-height:1.55;margin:0 auto;max-width:32ch}
+
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:14px 18px calc(14px + var(--safe-b));
+  background:linear-gradient(180deg,transparent,var(--bg) 34%);display:none}
+.bar.show{display:block}
+.bar-in{max-width:520px;margin:0 auto}
+.cta{width:100%;border:0;border-radius:18px;padding:17px;font:inherit;font-weight:800;font-size:16.5px;cursor:pointer;
+  background:var(--lime);color:var(--lime-ink);display:flex;justify-content:space-between;align-items:center;transition:transform .12s,opacity .2s;
+  box-shadow:0 10px 30px -10px rgba(143,205,240,.55)}
+.cta:active{transform:scale(.985)}
+.cta[disabled]{opacity:.35;box-shadow:none}
+.cta span:last-child{font-family:var(--serif);font-size:18px}
+.links{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.links a,.btn2{flex:1;min-width:130px;text-align:center;text-decoration:none;color:var(--text);border:1.5px solid var(--line);background:var(--card);
+  padding:13px;border-radius:14px;font:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.btn2.lime{background:var(--lime);color:var(--lime-ink);border-color:var(--lime)}
+.tip{font-size:12.5px;color:var(--muted);text-align:center;margin-top:30px}
+
+/* ---------- СЕРТИФИКАТ «ПОДАРИ МЕЧТУ» ---------- */
+.cert{position:relative;overflow:hidden;border-radius:26px;padding:34px 24px 28px;text-align:center;
+  background:radial-gradient(120% 70% at 88% -8%,rgba(143,205,240,.32),transparent 60%),
+             radial-gradient(90% 60% at -10% 108%,rgba(143,205,240,.18),transparent 60%),
+             linear-gradient(165deg,#2c333b,#1b1f24);
+  border:1.5px solid rgba(143,205,240,.55);box-shadow:0 30px 60px -28px rgba(143,205,240,.5)}
+.cert::after{content:"";position:absolute;inset:10px;border:1px dashed rgba(143,205,240,.28);border-radius:18px;pointer-events:none}
+.cert .trace{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+.cert .spark{position:absolute;color:var(--lime);opacity:.7;font-size:16px;pointer-events:none}
+.cert > .in{position:relative;z-index:1}
+.cert-brand{font-size:11px;letter-spacing:.28em;color:var(--lime);font-weight:800;text-transform:uppercase}
+.cert-sub{margin-top:6px;font-size:12.5px;color:var(--muted)}
+.cert-skate{display:block;width:150px;margin:14px auto -6px;transform:rotate(-7deg);filter:drop-shadow(0 8px 12px rgba(0,0,0,.45))}
+.cert-title{font-family:var(--serif);font-size:46px;line-height:1;margin:20px 0 4px;font-weight:700}
+.cert-title em{color:var(--lime);font-style:italic}
+.cert-sheet{font-size:13px;color:var(--muted);letter-spacing:.04em}
+.cert-num{margin:22px auto 4px;width:116px;height:116px;border-radius:50%;display:grid;place-items:center;align-content:center;
+  background:var(--lime);color:var(--lime-ink);box-shadow:0 0 0 8px rgba(143,205,240,.14),0 0 0 18px rgba(143,205,240,.06)}
+.cert-num b{font-family:var(--serif);font-size:52px;line-height:.9}
+.cert-num span{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+.cert-list{list-style:none;margin:24px 0 0;padding:0;display:grid;gap:10px;font-size:14px;line-height:1.38;text-align:left}
+.cert-list li{display:flex;gap:10px}
+.cert-list li::before{content:"✦";color:var(--lime);flex:none}
+.cert-to{margin-top:24px;font-size:13px;color:var(--muted)}
+.cert-to b{display:block;font-family:var(--serif);font-size:28px;color:var(--text);margin-top:3px;line-height:1.1}
+.cert-msg{margin-top:12px;font-size:14.5px;line-height:1.45;font-style:italic}
+.cert-from{margin-top:10px;font-size:13px;color:var(--muted)}
+.cert-from b{color:var(--text)}
+.cert-code{margin-top:22px;display:inline-block;font-size:11.5px;letter-spacing:.18em;color:var(--lime);border:1px solid rgba(143,205,240,.4);padding:7px 13px;border-radius:99px;font-weight:800}
+.cert-foot{margin-top:14px;font-size:11.5px;color:var(--muted)}
+.share{margin-top:18px;text-align:left}
+.share h3{font-size:16px;margin-bottom:6px}
+.share .lk{display:flex;gap:8px;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 10px 10px 14px;margin-top:8px}
+.share .lk div{flex:1;min-width:0;font-size:12px;color:var(--muted)}
+.share .lk div b{display:block;color:var(--text);font-size:13px;margin-bottom:2px}
+.share .lk div span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.share .lk button{flex:none;border:0;background:var(--lime);color:var(--lime-ink);font:inherit;font-weight:800;font-size:13px;padding:10px 14px;border-radius:11px;cursor:pointer}
+
+/* ---------- ЗОЛОТАЯ ГРАВИРОВКА ---------- */
+h1,h2,h3,.big,.cat,.cert-title,.cert-brand,.card .price b,.summary .tot b,.cert-to b{
+  color:var(--gold);
+  text-shadow:0 1px 0 var(--gold-hi),0 -1px 0 var(--gold-lo);
+}
+.hero h1 em,.cert-title em{color:#bfe4f7;text-shadow:0 1px 0 rgba(255,255,255,.25),0 -1px 0 var(--gold-lo)}
+.cat{display:flex;align-items:center;gap:12px}
+.cat::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(217,182,111,.55),transparent)}
+.hero{background:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 520 300'%3E%3Cpath d='M-10 230 C 120 130, 220 290, 330 190 S 500 90, 540 130' fill='none' stroke='%238fcdf0' stroke-opacity='.22' stroke-width='1.4'/%3E%3Cpath d='M-10 252 C 130 160, 230 300, 340 214 S 500 118, 540 156' fill='none' stroke='%238fcdf0' stroke-opacity='.12' stroke-width='1'/%3E%3C/svg%3E") center bottom/cover no-repeat}
+.deliver{margin:12px 0 0;display:grid;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.deliver div{display:grid;grid-template-columns:86px 1fr;gap:10px;font-size:13px;line-height:1.45;color:var(--muted)}
+.deliver b{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);text-shadow:0 1px 0 var(--gold-hi),0 -1px 0 var(--gold-lo);padding-top:1px}
+.panel-info{margin-top:8px;display:grid;gap:8px}
+.panel-info div{font-size:13px;line-height:1.45;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.panel-info b{color:var(--text)}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg2 button{background:var(--card);border:1.5px solid var(--line);color:var(--text);border-radius:14px;padding:12px 8px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;line-height:1.25}
+.seg2 button.sel{border-color:var(--lime);color:var(--lime)}
+#panel-box{display:none}
+
+/* ---------- АКЦИИ: лаймовые бейджи ---------- */
+.sale-strip{margin:16px -18px 6px;transform:rotate(-1.6deg);background:#c6f432;color:#162200;overflow:hidden;padding:9px 0;box-shadow:0 8px 26px -12px rgba(198,244,50,.55)}
+.sale-strip div{display:flex;gap:30px;white-space:nowrap;width:max-content;animation:run 18s linear infinite;font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.sticker{display:inline-block;font-style:normal;background:#c6f432;color:#162200;font-weight:800;font-size:12px;letter-spacing:.02em;padding:3px 9px;border-radius:6px;transform:rotate(-5deg);margin-left:6px;animation:pulse 2.2s ease-in-out infinite;white-space:nowrap}
+@keyframes pulse{0%,100%{transform:rotate(-5deg) scale(1);box-shadow:0 0 0 0 rgba(198,244,50,0)}50%{transform:rotate(-5deg) scale(1.08);box-shadow:0 0 14px 2px rgba(198,244,50,.45)}}
+.sale-line{color:#c6f432;font-weight:800}
+@media (prefers-reduced-motion:reduce){.sticker,.sale-strip div{animation:none}}
+#mini-box,#bday-box,#rink-box,#team-box{display:none}
+#bday-box .consent{margin-top:18px}
+#bday-box input[type=text]{margin-top:10px}
+.hint{font-size:12px;color:var(--muted);line-height:1.45;margin-top:6px}
+/* ---------- РЕЖИМ ПОДАРКОВ (ссылка #gifts) ---------- */
+body.gift-mode .card:not(.gift),body.gift-mode .cat:not(.cat-gift),body.gift-mode .cat-sub:not(.sub-gift),body.gift-mode .aud,body.gift-mode .sale-strip{display:none}
+
+/* ---------- ВРАЩАЮЩАЯСЯ ПЕЧАТЬ СКИДКИ ---------- */
+.seal{flex:none;width:68px;height:68px;margin:-14px 0;filter:drop-shadow(0 4px 10px rgba(198,244,50,.3))}
+.seal .ring{transform-box:view-box;transform-origin:50% 50%;animation:spin 16s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.seal .ring{animation:none}}
+.credo{margin:18px 0 0;padding:2px 0 2px 14px;border-left:2px solid rgba(217,182,111,.7);font-family:var(--serif);font-style:italic;font-weight:600;font-size:17px;line-height:1.4;color:var(--gold);text-shadow:0 1px 0 var(--gold-hi),0 -1px 0 var(--gold-lo);position:relative;max-width:34ch}
+.credo span{display:block;margin-top:6px;font-family:'Manrope',sans-serif;font-style:normal;font-size:11.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-shadow:none}
+body.gift-mode .credo,body.gift-mode .aud-title{display:none}
+.aud-title{margin-top:20px;font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);text-shadow:0 1px 0 var(--gold-hi),0 -1px 0 var(--gold-lo);position:relative}
+.aud-title + .aud{margin-top:10px}
+
+/* ---------- ПОДМЕНЮ УСЛУГИ ---------- */
+.more-link{display:inline-block;margin-top:10px;font-size:13px;font-weight:800;color:var(--lime);cursor:pointer;text-decoration:none}
+.more-link + .prev{margin-left:16px}
+.d-head{display:flex;gap:14px;align-items:center;margin-top:10px}
+.d-head .ico{width:58px;height:58px;font-size:28px;border-radius:18px}
+.d-cat{font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.d-title{font-size:25px;line-height:1.1;margin-top:4px}
+.d-price{display:flex;align-items:center;gap:12px;margin:18px 0 4px;flex-wrap:wrap}
+.d-price b{font-family:var(--serif);font-size:30px;color:var(--gold);text-shadow:0 1px 0 var(--gold-hi),0 -1px 0 var(--gold-lo)}
+.d-price span{font-size:13px;color:var(--muted);flex:1;min-width:120px}
+.d-price .seal{width:78px;height:78px;margin:-8px 0}
+.d-lead{font-size:16px;line-height:1.55;margin:16px 0 0}
+.d-h{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin:28px 0 12px;display:flex;align-items:center;gap:12px}
+.d-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(217,182,111,.55),transparent)}
+.who{display:grid;gap:10px}
+.who div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.who b{display:block;font-size:13px;color:var(--lime);margin-bottom:3px}
+.who span{font-size:14px;line-height:1.45;color:var(--text)}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.checks li{display:flex;gap:12px;font-size:14.5px;line-height:1.45}
+.checks li::before{content:"✓";flex:none;width:22px;height:22px;border-radius:50%;background:var(--lime);color:var(--lime-ink);display:grid;place-items:center;font-size:12px;font-weight:800;margin-top:1px}
+.steps{list-style:none;counter-reset:st;margin:0;padding:0;display:grid;gap:12px}
+.steps li{counter-increment:st;display:flex;gap:12px;font-size:14.5px;line-height:1.45}
+.steps li::before{content:counter(st);flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);display:grid;place-items:center;font-size:13px;font-weight:800;font-family:var(--serif)}
+.facts{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 14px}
+.facts div{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.45}
+.facts div:last-child{border:0}
+.facts b{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.ptable{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 14px}
+.ptable div{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.ptable div:last-child{border:0}
+.ptable b{font-family:var(--serif);color:var(--gold)}
+details.faq{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 14px;margin-bottom:8px}
+details.faq summary{cursor:pointer;list-style:none;padding:14px 0;font-weight:700;font-size:14.5px;display:flex;justify-content:space-between;gap:10px}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary::after{content:"+";color:var(--lime);font-size:20px;line-height:1}
+details.faq[open] summary::after{content:"–"}
+details.faq p{margin:0 0 14px;font-size:14px;line-height:1.5;color:var(--muted)}
+.d-note{margin-top:22px;font-size:12.5px;color:var(--muted);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 1. ГЛАВНАЯ / ВЫБОР -->
+  <section class="screen active" id="s-home">
+    <div class="hero">
+      <span class="pill"><i></i> Фигурист-эксперт</span>
+      <h1>Разберу ваше катание <em>до мелочей</em></h1>
+      <p>Видеоразборы, консультации и разборы узких специалистов: прыжки, вращения, тесты по скольжению, программы.</p>
+      <blockquote class="credo">«Я не просто тренер — я проводник в мире фигурного катания»<span>Владислава</span></blockquote>
+      <div class="aud-title">Для кого</div>
+      <div class="aud"><span>Родителям спортсменов</span><span>Спортсменам</span><span>Взрослым любителям</span><span>Тем, кто хочет с нуля</span><span>Тренерам</span><span>Хоккеистам и командам</span></div>
+    </div>
+    <div class="marquee"><div id="marq"></div></div>
+
+    <div class="sec-title"><h2>Что нужно?</h2><span>можно выбрать до 3</span></div>
+    <div class="cards" id="services"></div>
+
+    <p class="note" id="home-note"></p>
+    <div class="links" id="contactLinks"></div>
+    <div class="tip">Катаемся с Владиславой · Фигурное катание для всех возрастов</div>
+  </section>
+
+  <!-- 1b. ПОДМЕНЮ УСЛУГИ -->
+  <section class="screen" id="s-detail">
+    <button class="back" data-back="home">← К услугам</button>
+    <div id="detail-body"></div>
+  </section>
+
+  <!-- 2. ЗАЯВКА -->
+  <section class="screen" id="s-form">
+    <button class="back" data-back="home">← Назад</button>
+    <h2 class="big serif">Ваша заявка</h2>
+    <p class="muted" style="margin:0 0 4px;font-size:14.5px">Пара строк — и я подготовлюсь заранее.</p>
+
+    <label>Как к вам обращаться</label>
+    <input type="text" id="f-name" placeholder="Имя" autocomplete="name">
+
+    <label>Куда написать</label>
+    <div class="seg" id="f-via">
+      <button data-v="Telegram" class="sel">Telegram</button>
+      <button data-v="MAX">MAX</button>
+      <button data-v="Телефон">Телефон</button>
+    </div>
+    <input type="text" id="f-contact" placeholder="@username или номер" style="margin-top:8px">
+
+    <div id="video-box">
+      <label>Ссылка на видео</label>
+      <input type="url" id="f-video" placeholder="Облако, YouTube, VK Видео…" inputmode="url">
+    </div>
+
+    <div id="panel-box">
+      <label>Чьё мнение нужно (судья высшей категории)</label>
+      <div class="seg2" id="f-panel">
+        <button data-v="Technical Controller (TC)">Technical Controller (TC) — технический контролёр</button>
+        <button data-v="Technical Specialist 1 (TS1)">Technical Specialist 1 (TS1)</button>
+        <button data-v="Technical Specialist 2 (TS2)">Technical Specialist 2 (TS2)</button>
+        <button data-v="Вся бригада: TC + TS1 + TS2" class="sel">Вся бригада: TC + TS1 + TS2</button>
+      </div>
+      <div class="panel-info">
+        <div><b>TC — технический контролёр:</b> проверяет и утверждает итоговый список элементов, исправляет решения бригады.</div>
+        <div><b>TS1 — технический специалист 1:</b> определяет каждый элемент и его уровень сложности.</div>
+        <div><b>TS2 — технический специалист 2:</b> подтверждает решения TS1 и вместе с ним отмечает недокруты, неверное ребро и падения.</div>
+      </div>
+    </div>
+
+    <div id="fit-box">
+      <label>Что нужно</label>
+      <div class="seg" id="f-fit">
+        <button data-v="ОФП">ОФП</button>
+        <button data-v="СФП">СФП</button>
+        <button data-v="ОФП и СФП" class="sel">Оба</button>
+      </div>
+    </div>
+
+    <div id="mini-box">
+      <label>Выберите занятие мини-группы</label>
+      <div class="seg2" id="f-slot" style="grid-template-columns:1fr"></div>
+      <div class="hint" id="slot-addr"></div>
+    </div>
+
+    <div id="rink-box">
+      <label>Каток</label>
+      <div class="seg2" id="f-rink" style="grid-template-columns:1fr"></div>
+      <div class="hint" id="rink-addr"></div>
+      <div class="hint">Время подбираем по расписанию свободного катания выбранного катка и подтверждаем после заявки.</div>
+    </div>
+
+    <div id="team-box">
+      <label>Сколько человек в команде (от 10)</label>
+      <input type="text" id="f-team" inputmode="numeric" value="10" placeholder="10">
+      <div class="hint">Цена согласовывается из расчёта 1000 ₽ с человека.</div>
+    </div>
+
+    <div id="offline-box">
+      <label>Удобные дни, время и район</label>
+      <input type="text" id="f-slots" placeholder="Например: сб–вс утром, Москва, юг">
+    </div>
+
+    <div id="bday-box">
+      <label class="consent"><input type="checkbox" id="f-bday"><span>Хочу скидку 10% ко дню рождения (за 7 дней до и 7 дней после)</span></label>
+      <input type="text" id="f-bday-date" placeholder="Дата рождения именинника, например 14.11">
+      <div class="hint">Скидки не суммируются: действует одна. На «Семейный подряд» и абонементы 4+1 скидка ко дню рождения не распространяется.</div>
+    </div>
+
+    <div id="gift-box">
+      <label>Для кого сертификат (имя)</label>
+      <input type="text" id="f-gift-to" placeholder="Например: Анна" maxlength="40">
+      <label>От кого (ваше имя)</label>
+      <input type="text" id="f-gift-from" placeholder="Например: Мария" maxlength="40">
+      <label>Тёплое пожелание (по желанию)</label>
+      <input type="text" id="f-gift-msg" placeholder="С днём рождения! Пусть мечты сбываются" maxlength="120">
+    </div>
+
+    <div id="msg-box">
+      <label>Что не получается / ваш вопрос</label>
+      <textarea id="f-msg" placeholder="Например: не получается лутц, заваливаюсь на выезде"></textarea>
+    </div>
+
+    <label class="consent" style="margin-top:20px">
+      <input type="checkbox" id="f-consent">
+      <span>Согласен(на) на обработку персональных данных в соответствии с <a href="#" id="privacy" target="_blank">политикой конфиденциальности</a>.</span>
+    </label>
+  </section>
+
+  <!-- 3. ПОДТВЕРЖДЕНИЕ / ОПЛАТА -->
+  <section class="screen" id="s-pay">
+    <button class="back" data-back="form">← Назад</button>
+    <h2 class="big serif" id="pay-h">Проверьте заявку</h2>
+    <div class="summary" id="summary"></div>
+    <p class="note" id="pay-note"></p>
+  </section>
+
+  <!-- 4. ГОТОВО -->
+  <section class="screen" id="s-done">
+    <div class="done" id="done-main">
+      <div class="ring"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h2 class="serif">Заявка отправлена</h2>
+      <p id="done-text">Спасибо! Я напишу вам в ближайшее время и подтвержу детали.</p>
+    </div>
+    <div id="done-cert"></div>
+    <div class="share" id="done-share"></div>
+    <div class="links" id="doneLinks"></div>
+  </section>
+
+  <!-- 5. СЕРТИФИКАТ (просмотр по ссылке и пример) -->
+  <section class="screen" id="s-cert">
+    <button class="back" id="cert-back" data-back="home">← Назад</button>
+    <div id="cert-wrap" style="margin-top:14px"></div>
+    <p class="note" style="text-align:center">Чтобы записаться, напишите мне и назовите номер сертификата.</p>
+    <div class="links" id="certLinks"></div>
+    <div class="links"><button class="btn2" id="cert-home">Все услуги</button></div>
+  </section>
+
+</div>
+
+<div class="bar" id="bar"><div class="bar-in"><button class="cta" id="cta"><span id="cta-t">Продолжить</span><span id="cta-p"></span></button></div></div>
+
+<script>
+/* ============ НАСТРОЙКИ — меняйте здесь ============ */
+const GROUP_TIERS = [ {max:2,price:8500}, {max:3,price:10500}, {max:4,price:13000}, {max:5,price:14000} ];
+
+const BDAY = { c:'−10%', t:'СКИДКА В ДЕНЬ РОЖДЕНИЯ' };
+
+/* ============ ПОДМЕНЮ УСЛУГ: «зачем это вам» — меняйте тексты здесь ============ */
+const WHO_VIDEO = {
+  parent:  ['Родителю', 'Поймёте, из-за чего ребёнок теряет баллы или не получает элемент, и перестанете гадать.'],
+  athlete: ['Спортсмену', 'Получите конкретный план, что исправлять в первую очередь.'],
+  adult:   ['Взрослому любителю', 'Разберётесь, что мешает, без лишних часов на льду.'],
+  coach:   ['Тренеру', 'Получите независимый взгляд на работу ученика и аргументы для разговора с родителями.']
+};
+const TIPS_VIDEO = ['Как снять видео?', 'В полный рост, при хорошем свете, лучше сбоку и спереди. Если это элемент — снимите несколько попыток подряд.'];
+
+const MORE = {
+  element:{
+    why:'Вы видите, что элемент не получается, но не понимаете почему. По видео я нахожу причину ошибки и объясняю, что менять.',
+    who:[WHO_VIDEO.parent, WHO_VIDEO.athlete, WHO_VIDEO.adult, WHO_VIDEO.coach],
+    get:['Раскадровка вашего видео с пояснением ошибок','Онлайн-консультация и объяснения','Понимание, что делать на следующей тренировке'],
+    steps:['Оставляете заявку и прикладываете видео элемента','Я делаю раскадровку и нахожу ошибки','Объясняю онлайн, что и как исправить'],
+    faq:[TIPS_VIDEO,['Подойдёт ли это новичку?','Да. Нужен любой элемент, который вы выполняете или пробуете выполнить.']]
+  },
+  technique:{
+    why:'Одной консультации часто мало, чтобы закрепить исправление. Здесь мы работаем вместе: после раскадровки 2 видеосозвона, где я наглядно поправляю и смотрю, как меняется техника.',
+    who:[['Родителю','Увидите динамику и поймёте, что ребёнок делает на льду.'],['Спортсмену','Исправите ошибку под контролем и увидите прогресс.'],WHO_VIDEO.adult,['Тренеру','Закрепите исправление у ученика с внешним контролем.']],
+    get:['Раскадровка с пояснением ошибок','2 видеосозвона: наглядно поправляю и объясняю, что менять','Возможность задать любой вопрос по элементу','Контроль ошибок и оценка прогресса'],
+    steps:['Оставляете заявку и прикладываете видео','Я делаю раскадровку и разбираю ошибки','Первый видеосозвон: что менять и как','Второй видеосозвон: смотрим прогресс и поправляем'],
+    faq:[['Можно ли работать над несколькими элементами?','Пакет строится вокруг одного элемента: так результат заметнее. Для другого элемента можно взять ещё один пакет.'],TIPS_VIDEO]
+  },
+  expert:{
+    why:'Когда нужен взгляд узкого специалиста: прыжки, вращения, скольжение, многооборотные прыжки. Разбираю ошибки по вашему видео.',
+    who:[['Спортсмену','Сложный элемент или тест по скольжению получите с точным разбором.'],['Родителю','Поймёте, что именно ограничивает рост ребёнка.'],WHO_VIDEO.adult,WHO_VIDEO.coach],
+    get:['Онлайн-разбор ошибок по вашему видео','Пояснения, из-за чего возникает каждая ошибка','Рекомендации, что исправлять'],
+    steps:['Оставляете заявку и прикладываете видео','Специалист разбирает элемент','Получаете разбор с пояснениями и рекомендациями'],
+    faq:[TIPS_VIDEO,['Что разбираем?','Прыжки, вращения, тесты по скольжению и многооборотные прыжки.']]
+  },
+  'expert-plus':{
+    why:'Один разбор показывает ошибки, а сопровождение показывает динамику: как улучшается техника и что меняется.',
+    who:[['Спортсмену','Видите, как исправления отражаются на технике.'],['Родителю','Понимаете, что даёт каждый месяц занятий.'],WHO_VIDEO.coach],
+    get:['Онлайн-разбор ошибок','Онлайн-сопровождение','Просмотр динамики: как улучшается техника и что меняется'],
+    steps:['Оставляете заявку и прикладываете видео','Получаете первый разбор','Дальше присылаете новое видео, а я показываю, что изменилось'],
+    faq:[['Сколько длится сопровождение?','Формат и количество разборов согласуем после заявки.'],TIPS_VIDEO]
+  },
+  prog:{
+    why:'Вы видите программу на льду, а судьи видят протокол. Я показываю, как программу оценят и где теряются баллы.',
+    who:[WHO_VIDEO.parent,WHO_VIDEO.athlete,['Взрослому любителю','Подготовитесь к любительским турнирам, заранее зная, что засчитают.'],WHO_VIDEO.coach],
+    get:['Раскадровка ключевых моментов с пояснениями в аудио','Список элементов с ожидаемой оценкой','Места потери баллов','План: что исправить в первую очередь','При необходимости 1 видеосозвон'],
+    steps:['Оставляете заявку и прикладываете видео программы','Я смотрю программу покадрово','Оцениваю работу технической бригады и судей по отдельности','Присылаю раскадровку с аудио, при необходимости — видеосозвон'],
+    faq:[['Как быстро будет готово?','До 7 дней после получения видео.'],TIPS_VIDEO]
+  },
+  'prog-ballet':{
+    why:'Программа балета на льду оценивается по своим критериям. Я смотрю её глазами судьи высшей категории и показываю, что усилить.',
+    who:[['Участнику','Узнаете, где теряются баллы, и что исправить в первую очередь.'],['Родителю','Поймёте, за что оценивают программу.'],['Тренеру и хореографу','Получите независимый взгляд на постановку перед стартом.']],
+    get:['Раскадровка с аудиопояснениями','Разбор рисунка, синхронности и качества исполнения','Места потери баллов и план доработки','При необходимости 1 видеосозвон'],
+    steps:['Оставляете заявку и прикладываете видео программы','Я разбираю программу покадрово','Присылаю раскадровку с аудио, при необходимости — видеосозвон'],
+    faq:[['Как быстро будет готово?','До 7 дней после получения видео.'],TIPS_VIDEO]
+  },
+  'prog-int':{
+    why:'Для международного уровня важно, как программу увидит техническая бригада: Technical Controller (TC), Technical Specialist 1 (TS1) и Technical Specialist 2 (TS2). Вы выбираете, чьё мнение нужно, при создании заявки.',
+    who:[['Спортсмену','Узнаете, какие элементы и уровни засчитают и где возможны снижения.'],['Родителю','Поймёте, за что на самом деле теряются баллы.'],WHO_VIDEO.coach],
+    get:['Раскадровка с аудиопояснениями','Какие элементы и уровни засчитают','Где возможны недокруты, неверное ребро и снижения','Что исправить, чтобы вернуть баллы','При необходимости 1 видеосозвон'],
+    steps:['Оставляете заявку, выбираете TC, TS1, TS2 или всю бригаду и прикладываете видео','Судья высшей категории разбирает программу по выбранным ролям','Получаете раскадровку с аудио, при необходимости — видеосозвон'],
+    faq:[['Почему цена «от 15 000 ₽»?','Цена зависит от числа программ (1–2) и выбранного состава. Точную сумму называю после просмотра видео.'],['Чем отличаются TC, TS1 и TS2?','TC проверяет и утверждает итоговый список элементов. TS1 определяет каждый элемент и его уровень. TS2 подтверждает решения TS1 и вместе с ним отмечает недокруты, неверное ребро и падения.']]
+  },
+  'fit-group':{
+    why:'Физическая подготовка помогает прыжкам, вращениям и скольжению. Занятия проходят онлайн в группе, поэтому доступны из любого места.',
+    who:[['Спортсмену','Подготовите тело к нагрузкам на льду.'],['Родителю','Ребёнок тренируется и вне катка.'],['Взрослому любителю','Поддерживаете форму для катания.']],
+    get:['Онлайн-занятие ОФП и СФП в группе','Упражнения под задачи фигурного катания'],
+    steps:['Оставляете заявку и выбираете ОФП, СФП или оба направления','Я подтверждаю время группы','Занимаетесь онлайн вместе с группой'],
+    faq:[['Что такое ОФП и СФП?','ОФП — общая физическая подготовка. СФП — специальная: упражнения под нужды фигурного катания.'],['Сколько стоит?','От 1000 ₽ за занятие в группе. Точную цену подтвержу при записи.']]
+  },
+  'fit-solo':{
+    why:'Персональное занятие по физической подготовке: программа под ваши задачи, без группы.',
+    who:[['Спортсмену','Упражнения под конкретные элементы.'],['Родителю','Тренировка, которую можно делать дома.'],['Взрослому любителю','Подготовка под ваш уровень.']],
+    get:['Индивидуальное онлайн-занятие ОФП и СФП','Упражнения под ваши задачи'],
+    steps:['Оставляете заявку и выбираете ОФП, СФП или оба направления','Мы согласуем время','Занимаетесь онлайн один на один'],
+    faq:[['Чем отличается от группы?','Занятие целиком посвящено вам и вашим задачам.']]
+  },
+  friends:{
+    why:'Занятие на льду для компании: вместе учиться веселее и спокойнее. Лёд включён в стоимость.',
+    who:[['Друзьям','Отличный способ провести время и научиться кататься.'],['Взрослым любителям','Занятие с мастером спорта без лишней подготовки.'],['Родителям подростков','Подросток занимается вместе с друзьями.']],
+    get:['1 час на льду с мастером спорта','Лёд включён в стоимость','Коньки: свои или прокат самостоятельно'],
+    steps:['Оставляете заявку: число человек и удобное время','Я подтверждаю дату и каток','Приходите на занятие'],
+    faq:[['Нужен ли опыт?','Нет. Можно прийти с нуля.'],['Есть ли скидка?','Ко дню рождения действует скидка 10% за 7 дней до и 7 дней после.']]
+  },
+  family:{
+    why:'Занятие для всей семьи: дети и взрослые вместе на одном льду. Цена со скидкой 10% от группового занятия.',
+    who:[['Родителям с детьми','Проведёте время вместе и научитесь кататься всей семьёй.'],['Семьям','Подходит и тем, кто ещё не стоял на коньках.']],
+    get:['1 час на льду с мастером спорта','Скидка 10% на семейное занятие','Лёд включён в стоимость'],
+    steps:['Оставляете заявку: сколько вас и удобное время','Я подтверждаю дату и каток','Приходите всей семьёй'],
+    faq:[['Сколько человек можно?','От 2 до 5. Цена зависит от числа участников.'],['Можно ли применить скидку ко дню рождения?','Нет, скидки не суммируются. Действует скидка на семейное занятие.']]
+  },
+  solo:{
+    why:'Персональное занятие: всё внимание тренера только вам. Подойдёт, чтобы быстрее исправить технику или начать с нуля.',
+    who:[['Спортсмену','Отработаете элементы и технику один на один.'],['Родителю','Ребёнок получает персональное внимание.'],['Взрослому любителю','Начнёте с нуля с учётом вашего уровня.']],
+    get:['1 час на льду с мастером спорта','Персональная работа над техникой и уверенностью'],
+    steps:['Оставляете заявку и удобное время','Я подтверждаю дату и каток','Приходите на занятие'],
+    faq:[['Входит ли лёд в стоимость?','Нет, лёд оплачивается отдельно.'],['Есть ли скидка?','Ко дню рождения действует скидка 10%. Пять занятий можно взять по цене четырёх (абонемент 4+1).']]
+  },
+  mini:{
+    why:'Мини-группа по выходным: внимание тренера и атмосфера группы по цене 1500 ₽ с человека.',
+    who:[['Любителям','Регулярные занятия по доступной цене.'],['Родителям','Ребёнок занимается в небольшой группе.'],['Взрослым','Можно прийти с нуля.']],
+    get:['1 час на льду в мини-группе с мастером спорта','Регулярное расписание по выходным'],
+    steps:['Оставляете заявку и выбираете занятие','Я подтверждаю место','Приходите в выбранное время'],
+    faq:[['Когда и где?','ТЦ «Город» (шоссе Энтузиастов, д. 12): суббота 11:15 и 12:30, воскресенье 11:00 и 12:00. «Локомотив» (Большая Черкизовская ул., 125, стр. 4): воскресенье 14:40.'],['Что оплачивается отдельно?','Билет на лёд и лёд тренера.']]
+  },
+  'solo-pack':{
+    why:'Берёте 4 индивидуальных занятия, пятое в подарок. Так вы экономите 4000 ₽ и занимаетесь регулярно.',
+    who:[['Спортсмену','Регулярная работа даёт больше, чем разовые занятия.'],['Родителю','Выгоднее, чем оплачивать каждое занятие отдельно.'],['Любителю','Удобно планировать занятия на 50 дней.']],
+    get:['5 индивидуальных занятий по цене 4','Экономия 4000 ₽','Действует 50 дней'],
+    steps:['Оформляете абонемент','Записываетесь на удобные даты','Занимаетесь в течение 50 дней'],
+    faq:[['Входит ли лёд?','Нет, лёд оплачивается отдельно.'],['Сколько действует?','50 дней с даты покупки.']]
+  },
+  'mini-pack':{
+    why:'Пять занятий в мини-группе по цене четырёх: так вы занимаетесь регулярно и экономите 1500 ₽.',
+    who:[['Любителям','Удобно ходить по выходным.'],['Родителям','Регулярные занятия ребёнка по выгодной цене.']],
+    get:['5 занятий в мини-группе по цене 4','Экономия 1500 ₽','Действует 50 дней'],
+    steps:['Оформляете абонемент','Выбираете занятие мини-группы','Приходите в течение 50 дней'],
+    faq:[['Что оплачивается отдельно?','Билет на лёд и лёд тренера.'],['Сколько действует?','50 дней с даты покупки.']]
+  }
+};
+const GIFT_MORE = n => ({
+  why:'Подарок, который запоминается: ' + (n===1 ? 'индивидуальная тренировка' : n + ' индивидуальные тренировки') + ' с мастером спорта и мини-фильм о занятии с поздравлением. Это впечатление, а не вещь.',
+  who:[['Ребёнку','Первые шаги на льду или новый уровень с мастером спорта.'],['Взрослому','Подарок для тех, кто давно хотел попробовать фигурное катание.'],['Спортсмену','Индивидуальная тренировка с мастером спорта.'],['Близким','Тренировка и мини-фильм остаются на память.']],
+  get:[n===1 ? 'Индивидуальная тренировка с мастером спорта, 1 час на льду' : n + ' индивидуальные тренировки с мастером спорта, по 1 часу на льду','Лёд включён в стоимость','Мини-фильм о занятии с поздравлением','Красивый сертификат со ссылкой для получателя','Действует 12 месяцев'],
+  steps:['Заказываете сертификат и вписываете имя и пожелание','Оплачиваете и получаете красивую ссылку','Отправляете её получателю','Получатель записывается по номеру сертификата'],
+  faq:[['Нужно ли получателю платить за лёд?','Нет, лёд включён в стоимость.'],['Сколько действует сертификат?','12 месяцев.'],['На сколько человек?','Сертификат на 1 человека.']]
+});
+['gift-1','gift-2','gift-3'].forEach((id,i)=>{ MORE[id] = GIFT_MORE(i+1); });
+const RINK_FAQ = ['Где проходят занятия?','Вы выбираете каток из списка, а время подбираем по расписанию свободного катания этого катка и подтверждаем после заявки.'];
+MORE.solo.faq.push(RINK_FAQ);
+MORE['solo-pack'].faq.push(RINK_FAQ);
+['gift-1','gift-2','gift-3'].forEach(id=>{
+  MORE[id].get.splice(2, 0, 'Каток согласовывается с обладателем: возможны открытые катки Москвы');
+  MORE[id].faq.unshift(['Где можно кататься?','Каток согласовывается с обладателем сертификата. Возможны открытые катки Москвы.']);
+});
+MORE['hockey-solo'] = {
+  why:'Индивидуальная тренировка по скольжению для хоккеиста: работаем над техникой скольжения и балансом на льду один на один.',
+  who:[['Хоккеисту','Занятие только для вас с мастером спорта по фигурному катанию.'],['Родителю','Ребёнок получает персональное внимание тренера.']],
+  get:['1 час на льду, индивидуальная тренировка по скольжению','Каток на выбор, время по расписанию свободного катания'],
+  steps:['Оставляете заявку и выбираете каток','Я подбираю время по расписанию свободного катания','Приходите на занятие'],
+  faq:[['Входит ли лёд в стоимость?','Нет, лёд оплачивается отдельно.'],RINK_FAQ]
+};
+MORE['hockey-team'] = {
+  why:'Тренировка по скольжению для хоккейной команды от 10 человек. Цена согласовывается из расчёта 1000 ₽ с человека.',
+  who:[['Тренеру команды','Занятие для всей команды сразу, условия согласуем под вас.'],['Руководителю','Простой расчёт: 1000 ₽ с человека.']],
+  get:['Тренировка по скольжению для команды от 10 человек','Цена из расчёта 1000 ₽ с человека','Дату, каток и условия согласуем после заявки'],
+  steps:['Оставляете заявку и указываете число игроков','Согласуем цену, дату и каток','Проводим тренировку'],
+  faq:[['От скольки человек?','От 10 человек.'],['Как считается цена?','Из расчёта 1000 ₽ с человека; окончательные условия согласуем после заявки.']]
+};
+
+
+const CONFIG = {
+  // price — цена в рублях. from:true — показывать «от». tiers — цена по числу человек. discount — скидка (0.1 = 10%).
+  // kind: 'video' | 'fit' | 'offline' | 'gift'
+  services: [
+    /* --- Видеоразборы и консультации --- */
+    { cat:'Видеоразборы и консультации', sub:'Для родителей, спортсменов, взрослых любителей, тех, кто хочет начать с нуля, и тренеров.',
+      id:'element', ico:'🌀', kind:'video', unit:'онлайн', price:2000,
+      title:'Не получается элемент',
+      desc:'Онлайн-консультация и объяснения. Раскадровка видео с пояснением ошибок.' },
+
+    { cat:'Видеоразборы и консультации', id:'technique', ico:'🎯', kind:'video', unit:'пакет · 2 видеосозвона', price:7000,
+      title:'Работа над техникой и контроль',
+      desc:'Онлайн-сопровождение после раскадровки: 2 видеосозвона, где наглядно поправляю и объясняю, что менять. Можно задать любой вопрос — строго по одному элементу.' },
+
+    /* --- Узкие специалисты --- */
+    { cat:'Разборы узких специалистов', sub:'Прыжки, вращения, тесты по скольжению.',
+      id:'expert', ico:'🔍', kind:'video', unit:'онлайн-разбор', price:8000,
+      title:'Разбор у специалиста',
+      desc:'Онлайн-разбор ошибок по вашему видео: прыжки, вращения, скольжение.' },
+
+    { cat:'Разборы узких специалистов', id:'expert-plus', ico:'📈', kind:'video', unit:'с сопровождением', price:15000,
+      title:'Разбор и онлайн-сопровождение',
+      desc:'Разбор плюс сопровождение: смотрим динамику, как улучшается техника и что меняется.' },
+
+    /* --- Разбор программы --- */
+    { cat:'Разбор программы', sub:'Смотрю вашу программу так, как её увидит судейская бригада: что засчитают, на сколько баллов и где вы их теряете.',
+      id:'prog', ico:'⚖️', kind:'video', unit:'разбор · до 7 дней', price:8000,
+      title:'Для спортсменов, любителей и взрослых',
+      desc:'Оценка всей программы по правилам судейства: элементы, уровни, недокруты, ребро, падения, качество исполнения и компоненты.',
+      deliver:{ time:'до 7 дней после получения видео',
+                result:'раскадровка ключевых моментов с пояснениями в аудио, список элементов с ожидаемой оценкой, места потери баллов и план: что исправить в первую очередь. При необходимости — 1 видеосозвон.',
+                how:'покадровый просмотр, оценка работы технической бригады и судей по отдельности, как в протоколе.' } },
+
+    { cat:'Разбор программы', id:'prog-ballet', ico:'🩰', kind:'video', unit:'разбор · до 7 дней', price:12000,
+      title:'Балет на льду',
+      desc:'Оценка программы балета на льду по критериям судейства вашей дисциплины.',
+      deliver:{ time:'до 7 дней после получения видео',
+                result:'раскадровка с аудиопояснениями, разбор рисунка, синхронности и качества исполнения, места потери баллов и план доработки. При необходимости — 1 видеосозвон.',
+                how:'покадровый просмотр программы глазами судьи высшей категории.' } },
+
+    { cat:'Разбор программы', id:'prog-int', ico:'🏆', kind:'video', unit:'1–2 программы · до 7 дней', price:15000, from:true,
+      title:'Международный уровень: техническая бригада',
+      desc:'Разбор 1–2 программ или отдельных элементов глазами технической бригады. Выберите, чьё мнение нужно, при создании заявки.',
+      panel:true,
+      deliver:{ time:'до 7 дней после получения видео',
+                result:'раскадровка с аудиопояснениями: какие элементы и уровни засчитают, где возможны недокруты, неверное ребро и снижения, и что исправить, чтобы вернуть баллы. При необходимости — 1 видеосозвон.',
+                how:'разбор судьёй высшей категории по ролям технической бригады: TC, TS1, TS2.' } },
+
+    /* --- ОФП и СФП --- */
+    { cat:'ОФП и СФП онлайн', id:'fit-group', ico:'💪', kind:'fit', unit:'занятие · в группе', price:1000, from:true,
+      title:'ОФП и СФП в группе',
+      desc:'Общая и специальная физическая подготовка онлайн вместе с группой.' },
+
+    { cat:'ОФП и СФП онлайн', id:'fit-solo', ico:'🏋️', kind:'fit', unit:'занятие · индивидуально', price:2500,
+      title:'ОФП и СФП индивидуально',
+      desc:'Персональная физическая подготовка онлайн под ваши задачи.' },
+
+    /* --- Офлайн --- */
+    { cat:'Офлайн на льду', sub:'Занятие 1 час. Лёд включён в стоимость. Коньки — свои или прокат самостоятельно.',
+      id:'friends', ico:'⛸️', kind:'offline', seal:BDAY, unit:'занятие · 1 час · лёд включён', price:8500, tiers:GROUP_TIERS,
+      title:'На лёд с друзьями',
+      desc:'Групповое занятие для компании: техника, уверенность, радость.' },
+
+    { cat:'Офлайн на льду', id:'family', ico:'👨‍👩‍👧', kind:'offline', unit:'занятие · 1 час · лёд включён', price:8500, tiers:GROUP_TIERS, discount:0.1, seal:{ c:'−10%', t:'СЕМЕЙНАЯ СКИДКА' },
+      title:'Семейный подряд',
+      desc:'Катаемся всей семьёй. Скидка 10% от цены группового занятия.' },
+
+    { cat:'Офлайн на льду', id:'solo', ico:'🧊', kind:'offline', rinks:true, seal:BDAY, unit:'занятие · 1 час · лёд отдельно', price:4000,
+      title:'Индивидуальное занятие',
+      desc:'Персональная работа на льду: техника, элементы, уверенность — только вы и тренер. Каток выбираете из списка, время подбираем по расписанию свободного катания. Лёд оплачивается отдельно.' },
+
+    { cat:'Офлайн на льду', id:'mini', ico:'👥', kind:'offline', mini:true, seal:BDAY, unit:'занятие · с человека · лёд отдельно', price:1500,
+      title:'Мини-группа по выходным',
+      desc:'Присоединяйтесь к мини-группе по выходным: ТЦ «Город» (шоссе Энтузиастов, д. 12) — суббота 11:15 и 12:30, воскресенье 11:00 и 12:00; «Локомотив» (Большая Черкизовская ул., 125, стр. 4) — воскресенье 14:40. Билет на лёд и лёд тренера оплачиваются отдельно.' },
+
+    /* --- Акция 4+1 --- */
+    { cat:'Акция: пятое занятие в подарок', sub:'Берёте 4 занятия — пятое в подарок. Абонемент действует 50 дней. Лёд оплачивается отдельно.',
+      id:'solo-pack', ico:'🎟️', kind:'offline', rinks:true, pack:true, seal:{ c:'4+1', t:'ПЯТОЕ ЗАНЯТИЕ В ПОДАРОК' }, unit:'5 занятий · платите за 4 · 50 дней · лёд отдельно', price:16000,
+      title:'Абонемент: индивидуальные 4+1',
+      desc:'Пять индивидуальных занятий по цене четырёх. Экономия 4000 ₽. Действует 50 дней.' },
+
+    { cat:'Акция: пятое занятие в подарок', id:'mini-pack', ico:'🎟️', kind:'offline', mini:true, pack:true, seal:{ c:'4+1', t:'ПЯТОЕ ЗАНЯТИЕ В ПОДАРОК' }, unit:'5 занятий · платите за 4 · 50 дней · лёд отдельно', price:6000,
+      title:'Абонемент: мини-группа 4+1',
+      desc:'Пять занятий в мини-группе по выходным по цене четырёх. Экономия 1500 ₽. Действует 50 дней.' },
+
+    /* --- Хоккеисты и команды --- */
+    { cat:'Хоккеистам и командам', sub:'Тренировки по скольжению: индивидуально и для команд.',
+      id:'hockey-solo', ico:'🏒', kind:'offline', rinks:true, unit:'занятие · 1 час · лёд отдельно', price:4000,
+      title:'Скольжение для хоккеиста',
+      desc:'Индивидуальная тренировка по скольжению для хоккеиста. Каток выбираете из списка, время подбираем по расписанию свободного катания.' },
+
+    { cat:'Хоккеистам и командам', id:'hockey-team', ico:'🏒', kind:'offline', perHead:1000, minPeople:10, from:true, unit:'команда от 10 человек · 1000 ₽ с человека', price:10000,
+      title:'Скольжение для команды хоккеистов',
+      desc:'Тренировка по скольжению для команды от 10 человек. Цена согласовывается из расчёта 1000 ₽ с человека.' },
+
+    /* --- Подарочные сертификаты --- */
+    { cat:'Подари мечту', sub:'Подарочный сертификат: индивидуальная тренировка с мастером спорта, 1 час на льду и мини-фильм о занятии с поздравлением.',
+      id:'gift-1', ico:'🎁', kind:'gift', lessons:1, unit:'сертификат · 12 месяцев · лёд включён', price:6700,
+      title:'Сертификат на 1 занятие',
+      desc:'Индивидуальная тренировка с мастером спорта, 1 час на льду + мини-фильм с поздравлением.' },
+
+    { cat:'Подари мечту', id:'gift-2', ico:'🎁', kind:'gift', lessons:2, unit:'сертификат · 12 месяцев · лёд включён', price:11900,
+      title:'Сертификат на 2 занятия',
+      desc:'Две индивидуальные тренировки с мастером спорта по 1 часу на льду + мини-фильм с поздравлением.' },
+
+    { cat:'Подари мечту', id:'gift-3', ico:'🎁', kind:'gift', lessons:3, unit:'сертификат · 12 месяцев · лёд включён', price:18800,
+      title:'Сертификат на 3 занятия',
+      desc:'Три индивидуальные тренировки с мастером спорта по 1 часу на льду, на 1 человека + мини-фильм с поздравлением.' },
+  ],
+  maxSelect: 3,
+  // Расписание мини-группы. addr — адрес катка (пока известен только «Город»).
+  slots: [
+    { label:'Сб 11:15 · ТЦ «Город»',  rink:'ТЦ «Город»',  addr:'ТЦ «Город», шоссе Энтузиастов, д. 12' },
+    { label:'Сб 12:30 · ТЦ «Город»',  rink:'ТЦ «Город»',  addr:'ТЦ «Город», шоссе Энтузиастов, д. 12' },
+    { label:'Вс 11:00 · ТЦ «Город»',  rink:'ТЦ «Город»',  addr:'ТЦ «Город», шоссе Энтузиастов, д. 12' },
+    { label:'Вс 12:00 · ТЦ «Город»',  rink:'ТЦ «Город»',  addr:'ТЦ «Город», шоссе Энтузиастов, д. 12' },
+    { label:'Вс 14:40 · «Локомотив»', rink:'Локомотив',   addr:'«Локомотив», Большая Черкизовская ул., 125, стр. 4, 107553' },
+  ],
+  // Катки для индивидуальных занятий: время подбирается по расписанию свободного катания.
+  rinks: [
+    { label:'ТЦ «Город»',        addr:'шоссе Энтузиастов, д. 12' },
+    { label:'Локомотив',         addr:'Большая Черкизовская ул., 125, стр. 4' },
+    { label:'Город Косино',      addr:'Новоухтомское ш., 2А' },
+    { label:'Реутов Арена',      addr:'Юбилейный просп., 43, Реутов' },
+    { label:'Арена Касатонова',  addr:'Октябрьский бул., 10, стр. 1, Королёв, 141070' },
+    { label:'Ледо',              addr:'г. Королёв, ул. Юности, 1Б' },
+    { label:'Другой каток',      addr:'согласуем после заявки' },
+  ],
+  marquee: ['Техника','Уверенность','Радость','Фигурное катание для всех возрастов'],
+  contacts: { telegram:'https://t.me/Vladovna', max:'https://max.ru/u/f9LHodD0cOJC9bIB7-nuoc1mA9Ne3RBCItvOHLGeQbYnpepefAijBSEFT-A', phone:'+79636095763' },
+  privacyUrl: 'privacy.html',
+  // Срок действия сертификата — например '3 месяца'. Пока пусто — строка не показывается.
+  certValidity: '12 месяцев',
+  // Ссылки на приложение для красивых ссылок на сертификаты:
+  webUrl: '',        // адрес страницы, например https://ник.github.io/название/ (если пусто — берётся текущий адрес)
+  tgAppLink: '',     // ссылка Mini App из BotFather, например https://t.me/vladaice_bot/app
+  maxAppLink: '',    // ссылка мини-приложения в MAX (формат проверьте в документации MAX)
+  // Куда отправлять заявку (ваш сервер/вебхук/Make/n8n). Пока пусто — заявка уйдёт боту через sendData.
+  endpoint: '',
+  // Ссылка на оплату ЮKassa (только для услуг с фиксированной ценой). Пока пусто — показывается заглушка.
+  payUrl: ''
+};
+/* =================================================== */
+
+const $ = s => document.querySelector(s);
+const fmt = n => n.toLocaleString('ru-RU') + ' ₽';
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const state = { sel:new Set(), via:'Telegram', fit:'ОФП и СФП', panel:'Вся бригада: TC + TS1 + TS2', slot:CONFIG.slots[0].label, rinkInd:CONFIG.rinks[0].label, team:10, people:3, screen:'home', code:'', certFrom:'link' };
+
+const tierPrice = s => {
+  const base = s.perHead ? s.perHead * Math.max(s.minPeople||1, state.team) : (s.tiers ? s.tiers.find(t=>state.people<=t.max).price : s.price);
+  return Math.round(base * (1 - (s.discount||0)));
+};
+const priceOf = s => s.perHead ? 'от ' + fmt(tierPrice(s)) : (s.tiers ? fmt(tierPrice(s)) : (s.from ? 'от ' : '') + fmt(s.price));
+const rangeOf = s => {
+  const d = 1 - (s.discount||0);
+  return fmt(Math.round(s.tiers[0].price*d)) + '–' + fmt(Math.round(s.tiers[s.tiers.length-1].price*d));
+};
+
+/* --- платформа: Telegram или MAX --- */
+const TG  = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData !== undefined ? Telegram.WebApp : null;
+const MAXW = window.WebApp && typeof window.WebApp.ready === 'function' ? window.WebApp : null;
+const host = MAXW && !(TG && TG.initData) ? MAXW : TG;
+try{ host && host.ready && host.ready(); host && host.expand && host.expand(); }catch(e){}
+try{ TG && TG.setHeaderColor && TG.setHeaderColor('#1d2126'); TG && TG.setBackgroundColor && TG.setBackgroundColor('#1d2126'); }catch(e){}
+const haptic = () => { try{ TG && TG.HapticFeedback && TG.HapticFeedback.selectionChanged(); }catch(e){} };
+
+const user = (TG && TG.initDataUnsafe && TG.initDataUnsafe.user) || (MAXW && MAXW.initDataUnsafe && MAXW.initDataUnsafe.user) || null;
+if(user){
+  $('#f-name').value = user.first_name || '';
+  if(user.username){ $('#f-contact').value = '@' + user.username; }
+}
+function setVia(v){
+  state.via = v;
+  document.querySelectorAll('#f-via button').forEach(b=>b.classList.toggle('sel', b.dataset.v===v));
+}
+if(MAXW && !(TG && TG.initData)) setVia('MAX');
+
+/* --- маркиза --- */
+(function(){
+  const t = CONFIG.marquee.map(x=>x+' <b>●</b>').join(' ');
+  $('#marq').innerHTML = [t,t,t,t].map(x=>`<span>${x}</span>`).join('');
+})();
+
+/* --- вращающаяся печать скидки --- */
+function sealSVG(s, suf){
+  const t = s.seal.t, k = Math.max(1, Math.round(30 / (t.length + 3)));
+  const ring = (t + ' • ').repeat(k);
+  const id = 'sp-' + s.id + (suf||'');
+  return `<svg class="seal" viewBox="0 0 100 100" aria-label="${esc(t)} ${esc(s.seal.c)}">
+    <defs><path id="${id}" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0"/></defs>
+    <circle cx="50" cy="50" r="49" fill="#c6f432"/>
+    <g class="ring"><text font-size="9.5" font-weight="800" fill="#162200" font-family="Manrope,sans-serif" textLength="236" lengthAdjust="spacing"><textPath href="#${id}">${esc(ring)}</textPath></text></g>
+    <circle cx="50" cy="50" r="26" fill="#162200"/>
+    <text x="50" y="57.5" text-anchor="middle" font-size="21" font-weight="700" fill="#c6f432" font-family="Fraunces,Georgia,serif">${esc(s.seal.c)}</text>
+  </svg>`;
+}
+
+/* --- услуги по категориям --- */
+const check = '<div class="check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+(function(){
+  let html = '', last = '';
+  CONFIG.services.forEach(s=>{
+    if(s.cat !== last){
+      const gk = s.kind==='gift';
+      html += `<div class="cat${gk?' cat-gift':''}">${s.cat}</div>` + (s.sub ? `<div class="cat-sub${gk?' sub-gift':''}">${s.sub}</div>` : '');
+      last = s.cat;
+    }
+    html += `
+    <div class="card has-check${s.kind==='gift'?' gift':''}" data-id="${s.id}">
+      ${check}
+      <div class="row"><div class="ico">${s.ico}</div>
+        <div><h3>${s.title}</h3><p>${s.desc}</p>
+        <a class="more-link" data-more="${s.id}">Подробнее →</a>${s.kind==='gift' ? `<a class="prev" data-prev="${s.id}">Посмотреть сертификат →</a>` : ''}</div></div>
+      ${s.tiers ? `<div class="people"><span>Сколько человек:</span>${[2,3,4,5].map(n=>`<button data-n="${n}">${n}</button>`).join('')}</div>` : ''}
+      <div class="price"><span>${s.unit||''}</span>${s.seal ? sealSVG(s) : ''}<b>${s.tiers ? rangeOf(s) : priceOf(s)}</b></div>
+    </div>`;
+  });
+  $('#services').innerHTML = html;
+})();
+
+function syncCards(){
+  document.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel', state.sel.has(c.dataset.id)));
+}
+
+$('#services').addEventListener('click', e=>{
+  const mv = e.target.closest('[data-more]');
+  if(mv){ openDetail(mv.dataset.more); return; }
+  const pv = e.target.closest('[data-prev]');
+  if(pv){ openPreview(pv.dataset.prev); return; }
+  const pb = e.target.closest('.people button');
+  if(pb){ state.people = +pb.dataset.n; haptic(); refresh(); return; }
+  if(e.target.closest('.people')) return;
+  const c = e.target.closest('.card'); if(!c) return;
+  const id = c.dataset.id;
+  const s = CONFIG.services.find(x=>x.id===id);
+  if(state.sel.has(id)) state.sel.delete(id);
+  else{
+    if(s.kind==='gift'){
+      CONFIG.services.filter(x=>x.kind==='gift').forEach(x=>state.sel.delete(x.id));
+    }
+    if(state.sel.size >= CONFIG.maxSelect) return;
+    state.sel.add(id);
+  }
+  syncCards(); haptic(); refresh();
+});
+
+$('#f-via').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b){ setVia(b.dataset.v); haptic(); } });
+$('#f-panel').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  state.panel = b.dataset.v;
+  document.querySelectorAll('#f-panel button').forEach(x=>x.classList.toggle('sel', x===b)); haptic();
+});
+$('#f-slot').innerHTML = CONFIG.slots.map((s,i)=>`<button data-v="${s.label}"${i===0?' class="sel"':''}>${s.label}</button>`).join('');
+const slotInfo = () => CONFIG.slots.find(s=>s.label===state.slot) || CONFIG.slots[0];
+const showAddr = () => { $('#slot-addr').textContent = slotInfo().addr ? 'Адрес: ' + slotInfo().addr : ''; };
+showAddr();
+$('#f-slot').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  state.slot = b.dataset.v; showAddr();
+  document.querySelectorAll('#f-slot button').forEach(x=>x.classList.toggle('sel', x===b)); haptic();
+});
+$('#f-rink').innerHTML = CONFIG.rinks.map((r,i)=>`<button data-v="${r.label}"${i===0?' class="sel"':''}>${r.label}</button>`).join('');
+const rinkInfo = () => CONFIG.rinks.find(r=>r.label===state.rinkInd) || CONFIG.rinks[0];
+const showRinkAddr = () => { $('#rink-addr').textContent = 'Адрес: ' + rinkInfo().addr; };
+showRinkAddr();
+$('#f-rink').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  state.rinkInd = b.dataset.v; showRinkAddr();
+  document.querySelectorAll('#f-rink button').forEach(x=>x.classList.toggle('sel', x===b)); haptic();
+});
+$('#f-team').addEventListener('input', e=>{
+  state.team = Math.max(10, parseInt(e.target.value.replace(/\D/g,''),10) || 10);
+  refresh();
+});
+$('#f-bday').addEventListener('change', ()=>refresh());
+$('#f-fit').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  state.fit = b.dataset.v;
+  document.querySelectorAll('#f-fit button').forEach(x=>x.classList.toggle('sel', x===b)); haptic();
+});
+
+function updatePeople(){
+  document.querySelectorAll('.people button').forEach(b=>b.classList.toggle('sel', +b.dataset.n===state.people));
+  CONFIG.services.filter(s=>s.tiers).forEach(s=>{
+    const el = document.querySelector('.card[data-id="'+s.id+'"] .price b');
+    if(el) el.textContent = state.sel.has(s.id) ? fmt(tierPrice(s)) : rangeOf(s);
+  });
+}
+
+/* --- расчёт --- */
+const chosen   = () => CONFIG.services.filter(s=>state.sel.has(s.id));
+const bdayItems = () => chosen().filter(s=>s.kind==='offline' && !s.discount && !s.pack && !s.perHead);
+const hasRinks = () => chosen().some(s=>s.rinks);
+const hasTeam  = () => chosen().some(s=>s.perHead);
+const bdayOn    = () => bdayItems().length > 0 && $('#f-bday').checked;
+const bdayDiscount = () => bdayOn() ? Math.round(bdayItems().reduce((a,s)=>a+tierPrice(s),0) * 0.1) : 0;
+const total    = () => chosen().reduce((a,s)=>a+tierPrice(s),0) - bdayDiscount();
+const hasMini  = () => chosen().some(s=>s.mini);
+const hasFrom  = () => chosen().some(s=>s.from);
+const hasOff   = () => chosen().some(s=>s.kind==='offline');
+const hasTier  = () => chosen().some(s=>s.tiers);
+const hasVideo = () => chosen().some(s=>s.kind==='video');
+const hasFit   = () => chosen().some(s=>s.kind==='fit');
+const hasPanel = () => chosen().some(s=>s.panel);
+const gift     = () => chosen().find(s=>s.kind==='gift');
+const hasOther = () => chosen().some(s=>s.kind!=='gift');
+const totalTxt = () => total() ? (hasFrom() ? 'от ' : '') + fmt(total()) : '';
+
+/* --- подменю услуги --- */
+function openDetail(id){
+  const s = CONFIG.services.find(x=>x.id===id); if(!s) return;
+  if(state.screen==='home') state.restoreY = window.scrollY;
+  state.detailId = id;
+  $('#detail-body').innerHTML = detailHTML(s);
+  go('detail');
+}
+function detailHTML(s){
+  const m = MORE[s.id] || {};
+  const d = s.deliver;
+  const li = a => (a||[]).map(x=>`<li>${x}</li>`).join('');
+  const priceNow = s.tiers ? rangeOf(s) : priceOf(s);
+  const peopleRows = s.tiers ? s.tiers.map((t,i)=>{
+    const n = [2,3,4,5][i]; const word = n===5 ? 'человек' : 'человека';
+    return `<div><span>${n} ${word}</span><b>${fmt(Math.round(t.price*(1-(s.discount||0))))}</b></div>`;
+  }).join('') : '';
+  const panel = s.panel ? `<div class="panel-info"><div><b>TC — технический контролёр:</b> проверяет и утверждает итоговый список элементов, исправляет решения бригады.</div><div><b>TS1 — технический специалист 1:</b> определяет каждый элемент и его уровень сложности.</div><div><b>TS2 — технический специалист 2:</b> подтверждает решения TS1 и вместе с ним отмечает недокруты, неверное ребро и падения.</div></div>` : '';
+  return `
+    <div class="d-head"><div class="ico">${s.ico}</div><div><div class="d-cat">${s.cat}</div><h2 class="d-title">${s.title}</h2></div></div>
+    <div class="d-price"><b>${priceNow}</b><span>${s.unit||''}</span>${s.seal ? sealSVG(s,'-d') : ''}</div>
+    ${m.why ? `<p class="d-lead">${m.why}</p>` : `<p class="d-lead">${s.desc}</p>`}
+    ${s.tiers ? `<h3 class="d-h">Цена по числу человек</h3><div class="ptable">${peopleRows}</div>` : ''}
+    ${m.who ? `<h3 class="d-h">${s.kind==='gift' ? 'Кому подарить' : 'Кому и зачем'}</h3><div class="who">${m.who.map(w=>`<div><b>${w[0]}</b><span>${w[1]}</span></div>`).join('')}</div>` : ''}
+    ${m.get ? `<h3 class="d-h">Что вы получите</h3><ul class="checks">${li(m.get)}</ul>` : ''}
+    ${d ? `<h3 class="d-h">Срок и результат</h3><div class="facts"><div><b>Срок</b><span>${d.time}</span></div><div><b>Результат</b><span>${d.result}</span></div><div><b>За счёт чего</b><span>${d.how}</span></div></div>` : ''}
+    ${m.steps ? `<h3 class="d-h">Как это проходит</h3><ol class="steps">${li(m.steps)}</ol>` : ''}
+    ${panel ? `<h3 class="d-h">Кто в технической бригаде</h3>${panel}` : ''}
+    ${s.rinks ? `<h3 class="d-h">Катки на выбор</h3><div class="ptable">${CONFIG.rinks.map(r=>`<div><span>${r.label}</span><span class="muted" style="text-align:right;font-size:12.5px">${r.addr}</span></div>`).join('')}</div>` : ''}
+    ${m.faq ? `<h3 class="d-h">Частые вопросы</h3>${m.faq.map(q=>`<details class="faq"><summary>${q[0]}</summary><p>${q[1]}</p></details>`).join('')}` : ''}
+    ${s.kind==='gift' ? `<a class="more-link" data-prev-d="${s.id}" style="margin-top:20px">Посмотреть, как выглядит сертификат →</a>` : ''}
+    <p class="d-note">${s.kind==='gift' ? 'Лёд включён в стоимость сертификата.' : 'Окончательные детали и время подтверждаю после заявки.'}</p>`;
+}
+$('#detail-body').addEventListener('click', e=>{
+  const pv = e.target.closest('[data-prev-d]');
+  if(pv){ openPreview(pv.dataset.prevD); }
+});
+
+/* --- навигация --- */
+function go(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('#s-'+name).classList.add('active'); state.screen = name;
+  if(name==='home' && state.restoreY != null){
+    const y = state.restoreY; state.restoreY = null;
+    requestAnimationFrame(()=>window.scrollTo({top:y,behavior:'instant'}));
+  } else window.scrollTo({top:0,behavior:'smooth'});
+  refresh();
+}
+document.addEventListener('click', e=>{ const b=e.target.closest('[data-back]'); if(b) go(b.dataset.back); });
+
+function refresh(){
+  updatePeople();
+  const any = state.sel.size > 0;
+  $('#offline-box').style.display = hasOff() ? 'block' : 'none';
+  $('#video-box').style.display   = hasVideo() ? 'block' : 'none';
+  $('#fit-box').style.display     = hasFit() ? 'block' : 'none';
+  $('#panel-box').style.display   = hasPanel() ? 'block' : 'none';
+  $('#mini-box').style.display    = hasMini() ? 'block' : 'none';
+  $('#bday-box').style.display    = bdayItems().length ? 'block' : 'none';
+  $('#rink-box').style.display    = hasRinks() ? 'block' : 'none';
+  $('#team-box').style.display    = hasTeam() ? 'block' : 'none';
+  document.querySelectorAll('.card[data-id]').forEach(c=>{ const s=CONFIG.services.find(x=>x.id===c.dataset.id); if(s && s.perHead){ const b=c.querySelector('.price b'); if(b) b.textContent = priceOf(s); } });
+  $('#gift-box').style.display    = gift() ? 'block' : 'none';
+  $('#msg-box').style.display     = hasOther() ? 'block' : 'none';
+
+  const noteParts = ['Занятие длится 1 час. Лёд включён в стоимость занятий «На лёд с друзьями», «Семейный подряд» и сертификатов, коньки — свои или прокат самостоятельно. В индивидуальном занятии лёд оплачивается отдельно; в мини-группе отдельно оплачиваются билет на лёд и лёд тренера.'];
+  $('#home-note').textContent = document.body.classList.contains('gift-mode')
+    ? 'Лёд включён в стоимость сертификата. После заказа вы получите красивую ссылку на сертификат и сможете отправить её получателю.'
+    : noteParts.join(' ');
+
+  const bar = $('#bar'), cta = $('#cta'), t = $('#cta-t'), p = $('#cta-p');
+  const showBar = ['home','form','pay','detail'].includes(state.screen) && (state.screen !== 'home' || any);
+  bar.classList.toggle('show', showBar);
+  p.textContent = totalTxt();
+  if(state.screen==='home'){ t.textContent='Продолжить'; cta.disabled=!any; }
+  if(state.screen==='detail'){
+    const ds = CONFIG.services.find(x=>x.id===state.detailId);
+    if(ds){ t.textContent = state.sel.has(ds.id) ? 'Убрать из выбора' : 'Выбрать'; p.textContent = ds.tiers ? fmt(tierPrice(ds)) : priceOf(ds); }
+    cta.disabled=false;
+  }
+  if(state.screen==='form'){ t.textContent='Далее'; cta.disabled=false; }
+  if(state.screen==='pay'){
+    const canPay = CONFIG.payUrl && !hasFrom();
+    t.textContent = canPay ? 'Оплатить' : 'Отправить заявку'; cta.disabled=false;
+  }
+}
+
+$('#cta').addEventListener('click', async ()=>{
+  if(state.screen==='detail'){
+    const ds = CONFIG.services.find(x=>x.id===state.detailId);
+    if(state.sel.has(ds.id)) state.sel.delete(ds.id);
+    else{
+      if(ds.kind==='gift') CONFIG.services.filter(x=>x.kind==='gift').forEach(x=>state.sel.delete(x.id));
+      if(state.sel.size >= CONFIG.maxSelect){ alert('Можно выбрать до ' + CONFIG.maxSelect + ' услуг'); return; }
+      state.sel.add(ds.id);
+    }
+    syncCards(); haptic(); go('home'); return;
+  }
+  if(state.screen==='home'){ go('form'); return; }
+  if(state.screen==='form'){
+    const name=$('#f-name').value.trim(), contact=$('#f-contact').value.trim();
+    if(!name || !contact){ alert('Укажите имя и контакт для связи'); return; }
+    if(!$('#f-consent').checked){ alert('Нужно согласие на обработку персональных данных'); return; }
+    renderSummary(); go('pay'); return;
+  }
+  if(state.screen==='pay'){ await submit(); }
+});
+
+function genCode(){
+  const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = ''; for(let i=0;i<5;i++) s += a[Math.floor(Math.random()*a.length)];
+  return 'VF-' + s;
+}
+
+function renderSummary(){
+  const g = gift();
+  if(g && !state.code) state.code = genCode();
+  if(!g) state.code = '';
+  const li = chosen().map(s=>`<div class="li"><span>${s.title}</span><span>${priceOf(s)}</span></div>`).join('');
+  const link = $('#f-video').value.trim(), slots = $('#f-slots').value.trim();
+  const to = $('#f-gift-to').value.trim();
+  $('#summary').innerHTML = li +
+    (hasTier() ? `<div class="li"><span class="muted">Человек</span><span>${state.people}</span></div>` : '') +
+    (hasOff() && slots ? `<div class="li"><span class="muted">Удобное время</span><span style="text-align:right">${esc(slots)}</span></div>` : '') +
+    (hasFit() ? `<div class="li"><span class="muted">Формат</span><span>${esc(state.fit)}</span></div>` : '') +
+    (hasPanel() ? `<div class="li"><span class="muted">Кто разбирает</span><span style="text-align:right">${esc(state.panel)}</span></div>` : '') +
+    (hasMini() ? `<div class="li"><span class="muted">Занятие</span><span style="text-align:right">${esc(state.slot)}</span></div>` : '') +
+    (hasRinks() ? `<div class="li"><span class="muted">Каток</span><span style="text-align:right">${esc(state.rinkInd)}</span></div>` : '') +
+    (hasTeam() ? `<div class="li"><span class="muted">Игроков в команде</span><span>${state.team}</span></div>` : '') +
+    (bdayDiscount() ? `<div class="li"><span class="sale-line">Скидка ко дню рождения</span><span class="sale-line">−${fmt(bdayDiscount())}</span></div>` : '') +
+    (g && to ? `<div class="li"><span class="muted">Сертификат для</span><span style="text-align:right">${esc(to)}</span></div>` : '') +
+    (g ? `<div class="li"><span class="muted">Номер сертификата</span><span>${state.code}</span></div>` : '') +
+    `<div class="li"><span class="muted">Связь</span><span>${esc(state.via)}: ${esc($('#f-contact').value.trim())}</span></div>` +
+    (hasVideo() && link ? `<div class="li"><span class="muted">Видео</span><span style="word-break:break-all;text-align:right">${esc(link)}</span></div>` : '') +
+    `<div class="li tot"><span>Итого</span><b>${totalTxt()}</b></div>`;
+  const canPay = CONFIG.payUrl && !hasFrom();
+  $('#pay-h').textContent = canPay ? 'Проверьте и оплатите' : 'Проверьте заявку';
+  $('#pay-note').textContent = hasFrom()
+    ? 'Точную стоимость подтвержу после просмотра вашего видео и выбора состава (TC, TS1, TS2) — оплата после этого.'
+    : (canPay ? 'Оплата проходит через ЮKassa — картой или через СБП. Чек придёт на почту или в мессенджер.'
+              : 'Я свяжусь с вами и пришлю ссылку на оплату.')
+      + (g ? ' Ссылку на сертификат можно отправлять получателю после оплаты.' : '');
+}
+
+async function submit(){
+  const g = gift();
+  const cert = g ? { l:g.lessons, t:$('#f-gift-to').value.trim(), f:$('#f-gift-from').value.trim(), m:$('#f-gift-msg').value.trim(), k:state.code } : null;
+  const payload = {
+    platform: host === MAXW ? 'max' : (TG ? 'telegram' : 'web'),
+    user_id: user && user.id || null,
+    name: $('#f-name').value.trim(),
+    via: state.via, contact: $('#f-contact').value.trim(),
+    video: $('#f-video').value.trim(), message: $('#f-msg').value.trim(),
+    people: hasTier() ? state.people : (hasOff() ? 1 : null),
+    slots: hasOff() ? $('#f-slots').value.trim() : '',
+    fit: hasFit() ? state.fit : '',
+    panel: hasPanel() ? state.panel : '',
+    slot: hasMini() ? state.slot : '', rink: hasMini() ? slotInfo().rink : '', rink_choice: hasRinks() ? state.rinkInd : '', team_size: hasTeam() ? state.team : null,
+    birthday_discount: bdayDiscount(), birthday_date: bdayOn() ? $('#f-bday-date').value.trim() : '',
+    gift_for: cert ? cert.t : '', gift_from: cert ? cert.f : '', gift_msg: cert ? cert.m : '', gift_code: cert ? cert.k : '',
+    services: chosen().map(s=>s.title + ' — ' + priceOf(s)),
+    total: total(), total_is_from: hasFrom(), ts: new Date().toISOString()
+  };
+  const btn = $('#cta'); btn.disabled = true;
+  try{
+    if(CONFIG.endpoint){
+      await fetch(CONFIG.endpoint,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    } else if(host && host.sendData){
+      host.sendData(JSON.stringify(payload));
+    }
+  }catch(e){ console.warn(e); }
+  if(CONFIG.payUrl && !hasFrom() && total()>0){
+    const url = CONFIG.payUrl + (CONFIG.payUrl.includes('?')?'&':'?') + 'sum=' + total();
+    if(TG && TG.openLink) TG.openLink(url); else if(MAXW && MAXW.openLink) MAXW.openLink(url); else window.open(url,'_blank');
+  }
+  try{ TG && TG.HapticFeedback && TG.HapticFeedback.notificationOccurred('success'); }catch(e){}
+
+  if(cert){
+    $('#done-text').textContent = 'Сертификат готов — ниже его красивая версия и ссылки, которые можно отправить получателю после оплаты.';
+    $('#done-cert').innerHTML = '<div style="margin-top:6px">' + certHTML(cert) + '</div>';
+    renderShare(cert);
+  } else {
+    $('#done-text').textContent = 'Спасибо! Я напишу вам в ближайшее время и подтвержу детали.';
+    $('#done-cert').innerHTML = ''; $('#done-share').innerHTML = '';
+  }
+  go('done');
+}
+
+/* ================= СЕРТИФИКАТЫ ================= */
+function b64e(s){
+  const bytes = new TextEncoder().encode(s); let t = '';
+  bytes.forEach(x => t += String.fromCharCode(x));
+  return btoa(t).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function b64d(s){
+  s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length % 4) s += '=';
+  const t = atob(s); const bytes = Uint8Array.from(t, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function certHTML(c){
+  const l = Math.min(3, Math.max(1, parseInt(c.l,10) || 1));
+  const word = l === 1 ? 'занятие' : 'занятия';
+  const items = [
+    l === 1 ? 'Индивидуальная тренировка с мастером спорта' : l + ' индивидуальные тренировки с мастером спорта',
+    l === 1 ? '1 час на льду, лёд включён' : 'По 1 часу на льду, лёд включён',
+    'Мини-фильм о занятии с поздравлением'
+  ];
+  items.push('Каток согласовывается с обладателем: возможны открытые катки Москвы');
+  if(CONFIG.certValidity) items.push('Действителен: ' + esc(CONFIG.certValidity));
+  return `
+  <div class="cert">
+    <svg class="trace" viewBox="0 0 400 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <path d="M-20 560 C 90 470, 150 610, 260 520 S 400 420, 430 450" fill="none" stroke="#8fcdf0" stroke-opacity=".38" stroke-width="1.6"/>
+      <path d="M-20 585 C 100 500, 160 635, 270 545 S 400 450, 430 475" fill="none" stroke="#8fcdf0" stroke-opacity=".2" stroke-width="1.2"/>
+      <path d="M-20 80 C 60 40, 120 110, 200 60 S 340 20, 430 60" fill="none" stroke="#8fcdf0" stroke-opacity=".16" stroke-width="1.2"/>
+    </svg>
+    <span class="spark" style="left:26px;top:120px">✦</span>
+    <span class="spark" style="right:30px;top:210px;font-size:12px">✦</span>
+    <span class="spark" style="left:44px;bottom:150px;font-size:11px">✦</span>
+    <div class="in">
+      <div class="cert-brand">Подарочный сертификат</div>
+      <div class="cert-sub">Катаемся с Владиславой</div>
+    <svg class="cert-skate" viewBox="0 0 200 140" aria-hidden="true">
+      <defs><linearGradient id="gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e2a8"/><stop offset=".5" stop-color="#d9b66f"/><stop offset="1" stop-color="#8f6a2a"/></linearGradient></defs>
+      <path d="M54 14C54 9 58 6 63 6L80 6C85 6 88 9 88 14L88 50C88 62 100 66 122 72C140 77 156 83 156 96L156 101L40 101L40 84C40 70 54 66 54 50Z" fill="#242b32" stroke="url(#gd)" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M54 22L88 22" stroke="url(#gd)" stroke-width="2.4"/>
+      <path d="M90 34L102 38M90 44L106 49M92 54L112 60M100 62L120 68" stroke="#8fcdf0" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M38 101L158 101L158 108L38 108Z" fill="url(#gd)"/>
+      <path d="M56 108L52 118M142 108L146 118" stroke="url(#gd)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M30 124L162 124C172 124 181 117 186 106L180 103C177 110 172 116 162 116L38 116Z" fill="#8fcdf0" stroke="#d8f0fc" stroke-width="1.4" stroke-linejoin="round"/>
+      <path d="M186 106L191 99L184 98" fill="none" stroke="#d8f0fc" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+      <div class="cert-title">Подари <em>мечту</em></div>
+      <div class="cert-sheet">на 1 человека</div>
+      <div class="cert-num"><b>${l}</b><span>${word}</span></div>
+      <ul class="cert-list">${items.map(x=>`<li>${x}</li>`).join('')}</ul>
+      ${c.t ? `<div class="cert-to">Для<b>${esc(c.t)}</b></div>` : ''}
+      ${c.m ? `<div class="cert-msg">«${esc(c.m)}»</div>` : ''}
+      ${c.f ? `<div class="cert-from">С любовью, <b>${esc(c.f)}</b></div>` : ''}
+      ${c.k ? `<div class="cert-code">№ ${esc(c.k)}</div>` : ''}
+      <div class="cert-foot">Фигурное катание для всех возрастов</div>
+    </div>
+  </div>`;
+}
+
+function certLinks(c){
+  const p = 'c_' + b64e(JSON.stringify(c));
+  const join = u => u + (u.includes('?') ? '&' : '?') + 'startapp=' + p;
+  const base = CONFIG.webUrl || (location.protocol.indexOf('http')===0 ? location.origin + location.pathname : '');
+  const out = [];
+  if(CONFIG.tgAppLink)  out.push({label:'Ссылка в Telegram', url: join(CONFIG.tgAppLink)});
+  if(CONFIG.maxAppLink) out.push({label:'Ссылка в MAX', url: join(CONFIG.maxAppLink)});
+  if(base)              out.push({label:'Ссылка для любого браузера', url: base.replace(/#.*$/,'') + '#' + p});
+  return out;
+}
+
+function renderShare(c){
+  const links = certLinks(c);
+  const box = $('#done-share');
+  if(!links.length){
+    box.innerHTML = '<h3>Ссылки на сертификат</h3><p class="note">Ссылки появятся после публикации приложения: укажите адрес в настройках webUrl / tgAppLink.</p>';
+    return;
+  }
+  box.innerHTML = '<h3>Отправить сертификат</h3>' +
+    links.map((l,i)=>`<div class="lk"><div><b>${l.label}</b><span>${esc(l.url)}</span></div><button data-copy="${i}">Копировать</button></div>`).join('') +
+    `<div class="links"><button class="btn2 lime" id="share-btn">Поделиться</button></div>`;
+  box.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click', async ()=>{
+    const url = links[+b.dataset.copy].url;
+    try{ await navigator.clipboard.writeText(url); b.textContent = 'Скопировано ✓'; }
+    catch(e){ window.prompt('Скопируйте ссылку:', url); }
+    setTimeout(()=>b.textContent='Копировать', 1800);
+  }));
+  $('#share-btn').addEventListener('click', ()=>{
+    const url = links[0].url, text = 'Тебе подарок: сертификат «Подари мечту» на занятие фигурным катанием 🎁';
+    if(navigator.share){ navigator.share({title:'Подари мечту', text, url}).catch(()=>{}); }
+    else{
+      const u = 'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text);
+      if(TG && TG.openTelegramLink) TG.openTelegramLink(u); else window.open(u,'_blank');
+    }
+  });
+}
+
+function showCert(c, fromPreview){
+  state.certFrom = fromPreview ? 'preview' : 'link';
+  $('#cert-wrap').innerHTML = certHTML(c);
+  $('#cert-back').style.display = fromPreview ? 'inline-flex' : 'none';
+  go('cert');
+}
+function openPreview(id){
+  const s = CONFIG.services.find(x=>x.id===id); if(!s) return;
+  if(state.screen==='home') state.restoreY = window.scrollY;
+  showCert({l:s.lessons, t:'Анна', f:'Мария', m:'С днём рождения! Пусть мечты сбываются.', k:'ОБРАЗЕЦ'}, true);
+}
+$('#cert-home').addEventListener('click', ()=>{ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} go('home'); });
+
+/* --- ссылки для связи --- */
+const lk = `<a href="${CONFIG.contacts.telegram}" target="_blank">Telegram</a><a href="${CONFIG.contacts.max}" target="_blank">MAX</a><a href="tel:${CONFIG.contacts.phone}">Позвонить</a>`;
+$('#contactLinks').innerHTML = lk; $('#doneLinks').innerHTML = lk; $('#certLinks').innerHTML = lk;
+$('#privacy').href = CONFIG.privacyUrl;
+
+/* --- витрина подарков: ссылка с #gifts или startapp=gifts --- */
+function enterGiftMode(){
+  document.body.classList.add('gift-mode');
+  document.querySelector('.hero .pill').innerHTML = '<i></i> Подарочные сертификаты';
+  document.querySelector('.hero h1').innerHTML = 'Подари <em>мечту</em> на льду';
+  document.querySelector('.hero p').textContent = 'Индивидуальная тренировка с мастером спорта, 1 час на льду и мини-фильм о занятии с поздравлением.';
+  document.querySelector('.sec-title h2').textContent = 'Выберите подарок';
+  document.querySelector('.sec-title span').textContent = 'на 1 человека';
+}
+
+/* --- открытие по ссылке на сертификат --- */
+(function route(){
+  const sp = (host && host.initDataUnsafe && host.initDataUnsafe.start_param) || '';
+  const hp = location.hash.replace(/^#/,'');
+  if(sp==='gifts' || hp==='gifts') enterGiftMode();
+  const param = sp.indexOf('c_')===0 ? sp : (hp.indexOf('c_')===0 ? hp : '');
+  if(!param) return;
+  try{
+    const c = JSON.parse(b64d(param.slice(2)));
+    if(c && typeof c === 'object'){ showCert(c, false); }
+  }catch(e){ console.warn('bad cert link', e); }
+})();
+
+refresh();
+</script>
+</body>
+</html>
